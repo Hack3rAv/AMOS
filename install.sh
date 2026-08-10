@@ -78,13 +78,38 @@ JAVA_VER=$(java -version 2>&1 | head -n 1 || echo "Not Found")
 echo -e "${GREEN}[✔] Node.js Version: ${NODE_VER}${NC}"
 echo -e "${GREEN}[✔] Java Version:   ${JAVA_VER}${NC}"
 
-echo -e "${YELLOW}[2/6] Setting up AMOS Directory Structure at ${INSTALL_DIR}...${NC}"
+echo -e "${YELLOW}[2/6] Setting up Fresh AMOS Directory Structure at ${INSTALL_DIR}...${NC}"
 mkdir -p "$INSTALL_DIR"
 
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
-    echo -e "${CYAN}[+] Copying codebase to ${INSTALL_DIR}...${NC}"
-    rsync -a --exclude='node_modules' --exclude='.git' "$SCRIPT_DIR/" "$INSTALL_DIR/" || cp -r "$SCRIPT_DIR/"* "$INSTALL_DIR/" 2>/dev/null || true
+    echo -e "${CYAN}[+] Installing clean AMOS core files to ${INSTALL_DIR}...${NC}"
+    if command -v rsync &> /dev/null; then
+        rsync -a \
+          --exclude='node_modules' \
+          --exclude='.git' \
+          --exclude='server_data/*' \
+          --exclude='server_data' \
+          --exclude='*.sqlite*' \
+          --exclude='*.db' \
+          --exclude='backend/*.sqlite*' \
+          --exclude='backend/database.sqlite' \
+          --exclude='backend/panel.sqlite' \
+          "$SCRIPT_DIR/" "$INSTALL_DIR/"
+    else
+        cp -r "$SCRIPT_DIR/backend" "$INSTALL_DIR/" 2>/dev/null || true
+        cp -r "$SCRIPT_DIR/frontend" "$INSTALL_DIR/" 2>/dev/null || true
+        cp -r "$SCRIPT_DIR/linux" "$INSTALL_DIR/" 2>/dev/null || true
+        cp "$SCRIPT_DIR/package.json" "$INSTALL_DIR/" 2>/dev/null || true
+        cp "$SCRIPT_DIR/start-amos.bat" "$INSTALL_DIR/" 2>/dev/null || true
+    fi
 fi
+
+# Ensure fresh empty server_data directory
+mkdir -p "$INSTALL_DIR/server_data"
+# Ensure any copied db files are wiped for a 100% fresh setup
+rm -f "$INSTALL_DIR/backend/panel.sqlite"*
+rm -f "$INSTALL_DIR/backend/database.sqlite"*
+rm -f "$INSTALL_DIR/backend/database.db"*
 
 cd "$INSTALL_DIR"
 
