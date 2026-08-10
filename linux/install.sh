@@ -119,11 +119,18 @@ if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     cp -r "$SCRIPT_DIR/frontend" "$INSTALL_DIR/frontend"
     rm -rf "$INSTALL_DIR/frontend/node_modules" "$INSTALL_DIR/frontend/dist" 2>/dev/null || true
     
+    # Extract frontend assets if assets.zip exists in the copied directory
+    if [ -f "$INSTALL_DIR/frontend/public/assets/assets.zip" ]; then
+        printf "    ➜ Extracting frontend assets.zip...\n"
+        unzip -q "$INSTALL_DIR/frontend/public/assets/assets.zip" -d "$INSTALL_DIR/frontend/public/assets/"
+        rm -f "$INSTALL_DIR/frontend/public/assets/assets.zip"
+    fi
+    
     printf "    ➜ Copying linux control scripts...\n"
     rm -rf "$INSTALL_DIR/linux"
     cp -r "$SCRIPT_DIR/linux" "$INSTALL_DIR/linux"
     
-    printf "${GREEN}[✔] Core files copied successfully!${NC}\n"
+    printf "${GREEN}[✔] Core files copied and assets extracted successfully!${NC}\n"
 fi
 
 # Ensure fresh empty server_data directory
