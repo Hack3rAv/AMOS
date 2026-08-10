@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Weather & Time Animations */
+@keyframes sunSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes rainDrop {
+  0% { transform: translateY(0%); opacity: 0.9; }
+  100% { transform: translateY(220px); opacity: 0.1; }
+}
+
+@keyframes lightningFlash {
+  0%, 90%, 100% { opacity: 0; }
+  92%, 96% { opacity: 0.9; }
+  94% { opacity: 0.2; }
+}
+
+@keyframes cloudGlideSlow {
+  0% { transform: translateX(-25px); }
+  50% { transform: translateX(35px); }
+  100% { transform: translateX(-25px); }
+}
+
+@keyframes cloudGlideFast {
+  0% { transform: translateX(30px); }
+  50% { transform: translateX(-40px); }
+  100% { transform: translateX(30px); }
+}
+
+.animate-sun-spin {
+  animation: sunSpin 12s linear infinite;
+}
+
+.animate-rain-drop {
+  animation: rainDrop 0.75s linear infinite;
+}
+
+.animate-lightning {
+  animation: lightningFlash 4s ease-in-out infinite;
+}
+
+.animate-cloud-glide-1 {
+  animation: cloudGlideSlow 14s ease-in-out infinite;
+}
+
+.animate-cloud-glide-2 {
+  animation: cloudGlideFast 18s ease-in-out infinite;
+}
+
+.animate-cloud-glide-3 {
+  animation: cloudGlideSlow 22s ease-in-out infinite;
+}
