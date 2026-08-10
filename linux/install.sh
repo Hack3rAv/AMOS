@@ -94,8 +94,8 @@ fi
 NODE_VER=$(node -v 2>/dev/null || echo "Not Found")
 JAVA_VER=$(java -version 2>&1 | head -n 1 || echo "Not Found")
 
-printf "${GREEN}[✔] Node.js Version: ${NODE_VER}${NC}\n"
-printf "${GREEN}[✔] Java Version:   ${JAVA_VER}${NC}\n"
+printf "${GREEN}[OK] Node.js Version: ${NODE_VER}${NC}\n"
+printf "${GREEN}[OK] Java Version:   ${JAVA_VER}${NC}\n"
 
 printf "${YELLOW}[2/6] Setting up Fresh AMOS Directory Structure at ${INSTALL_DIR}...${NC}\n"
 mkdir -p "$INSTALL_DIR"
@@ -109,28 +109,28 @@ fi
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     printf "${CYAN}[+] Installing clean AMOS core files to ${INSTALL_DIR}...${NC}\n"
     
-    printf "    ➜ Copying backend engine...\n"
+    printf "    -> Copying backend engine...\n"
     rm -rf "$INSTALL_DIR/backend"
     cp -r "$SCRIPT_DIR/backend" "$INSTALL_DIR/backend"
     rm -rf "$INSTALL_DIR/backend/node_modules" "$INSTALL_DIR/backend/"*.sqlite* "$INSTALL_DIR/backend/"*.db 2>/dev/null || true
     
-    printf "    ➜ Copying frontend application...\n"
+    printf "    -> Copying frontend application...\n"
     rm -rf "$INSTALL_DIR/frontend"
     cp -r "$SCRIPT_DIR/frontend" "$INSTALL_DIR/frontend"
     rm -rf "$INSTALL_DIR/frontend/node_modules" "$INSTALL_DIR/frontend/dist" 2>/dev/null || true
     
     # Extract frontend assets if assets.zip exists in the copied directory
     if [ -f "$INSTALL_DIR/frontend/public/assets/assets.zip" ]; then
-        printf "    ➜ Extracting frontend assets.zip...\n"
+        printf "    -> Extracting frontend assets.zip...\n"
         unzip -q "$INSTALL_DIR/frontend/public/assets/assets.zip" -d "$INSTALL_DIR/frontend/public/assets/"
         rm -f "$INSTALL_DIR/frontend/public/assets/assets.zip"
     fi
     
-    printf "    ➜ Copying linux control scripts...\n"
+    printf "    -> Copying linux control scripts...\n"
     rm -rf "$INSTALL_DIR/linux"
     cp -r "$SCRIPT_DIR/linux" "$INSTALL_DIR/linux"
     
-    printf "${GREEN}[✔] Core files copied and assets extracted successfully!${NC}\n"
+    printf "${GREEN}[OK] Core files copied and assets extracted successfully!${NC}\n"
 fi
 
 # Ensure fresh empty server_data directory
@@ -150,7 +150,8 @@ npm install --production=false
 printf "${CYAN}[+] Installing Frontend Dependencies & Compiling Production Bundle...${NC}\n"
 cd "$INSTALL_DIR/frontend"
 npm install
-npm run build
+# Added memory parameter to prevent Vite from hanging on limited RAM environments
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
 printf "${YELLOW}[4/6] Installing Systemd Background Daemon (amos.service)...${NC}\n"
 cp "$LINUX_DIR/amos.service" /etc/systemd/system/amos.service
@@ -175,17 +176,17 @@ PUBLIC_IP=$(curl -s --max-time 2 https://api.ipify.org 2>/dev/null || echo "Unav
 
 printf "${GREEN}\n"
 printf "============================================================\n"
-printf "    ✔ AMOS (Avrodip's Minecraft Operating System) INSTALLED!  \n"
+printf "    [OK] AMOS (Avrodip's Minecraft Operating System) INSTALLED!  \n"
 printf "============================================================\n"
 printf "${NC}\n"
 printf "  The AMOS daemon is now running as a background service.\n"
 printf "  It consumes minimal RAM and auto-starts on system boot.\n\n"
 printf "${CYAN}[ Web Panel Access Portal ]${NC}\n"
 for ip in $LOCAL_IPS; do
-    printf "  ➜ Local URL:  ${GREEN}http://${ip}:3001${NC}\n"
+    printf "  -> Local URL:  ${GREEN}http://${ip}:3001${NC}\n"
 done
 if [ "$PUBLIC_IP" != "Unavailable" ]; then
-    printf "  ➜ Public URL: ${GREEN}http://${PUBLIC_IP}:3001${NC}\n"
+    printf "  -> Public URL: ${GREEN}http://${PUBLIC_IP}:3001${NC}\n"
 fi
 printf "\n"
 printf "${CYAN}[ AMOS Command Line Usage ]${NC}\n"

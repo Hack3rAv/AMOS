@@ -38,9 +38,9 @@ cmd_status() {
     echo -e "${YELLOW}[-] Checking AMOS Daemon Status...${NC}"
     
     if systemctl is-active --quiet "$SERVICE_NAME"; then
-        echo -e "Service Status:  ${GREEN}● ACTIVE (RUNNING)${NC}"
+        echo -e "Service Status:  ${GREEN}[+] ACTIVE (RUNNING)${NC}"
     else
-        echo -e "Service Status:  ${RED}● INACTIVE (STOPPED)${NC}"
+        echo -e "Service Status:  ${RED}[-] INACTIVE (STOPPED)${NC}"
     fi
 
     if systemctl is-enabled --quiet "$SERVICE_NAME" 2>/dev/null; then
@@ -63,9 +63,9 @@ cmd_status() {
     # Check if Minecraft server java process is active
     MC_PID=$(pgrep -f "server.jar" 2>/dev/null)
     if [ -n "$MC_PID" ]; then
-        echo -e "Minecraft Server: ${GREEN}● ONLINE (PID: $MC_PID)${NC}"
+        echo -e "Minecraft Server: ${GREEN}[+] ONLINE (PID: $MC_PID)${NC}"
     else
-        echo -e "Minecraft Server: ${YELLOW}● OFFLINE (Awaiting start from Web Panel)${NC}"
+        echo -e "Minecraft Server: ${YELLOW}[-] OFFLINE (Awaiting start from Web Panel)${NC}"
     fi
     echo ""
 }
@@ -107,10 +107,10 @@ cmd_ip() {
     get_ip_addresses
     echo -e "${CYAN}[ AMOS Web Panel Access Portal ]${NC}"
     for ip in $LOCAL_IPS; do
-        echo -e "  ➜ Local URL:  ${GREEN}http://${ip}:${PORT}${NC}"
+        echo -e "  -> Local URL:  ${GREEN}http://${ip}:${PORT}${NC}"
     done
     if [ "$PUBLIC_IP" != "Unavailable" ]; then
-        echo -e "  ➜ Public URL: ${GREEN}http://${PUBLIC_IP}:${PORT}${NC}"
+        echo -e "  -> Public URL: ${GREEN}http://${PUBLIC_IP}:${PORT}${NC}"
     fi
     echo ""
 }
