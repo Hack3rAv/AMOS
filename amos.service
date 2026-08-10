@@ -1,0 +1,20 @@
+[Unit]
+Description=AMOS - Avrodip's Minecraft Operating System Daemon
+Documentation=https://github.com/
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/amos/backend
+ExecStart=/usr/bin/env npx tsx src/index.ts
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=3001
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=amos
+
+[Install]
+WantedBy=multi-user.target
