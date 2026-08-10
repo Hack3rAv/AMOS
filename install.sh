@@ -33,8 +33,27 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 INSTALL_DIR="/opt/amos"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-LINUX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Dynamically locate AMOS repository root folder containing backend/package.json
+SEARCH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=""
+while [ "$SEARCH_DIR" != "/" ] && [ "$SEARCH_DIR" != "." ]; do
+    if [ -f "$SEARCH_DIR/backend/package.json" ]; then
+        SCRIPT_DIR="$SEARCH_DIR"
+        break
+    fi
+    SEARCH_DIR="$(cd "$SEARCH_DIR/.." && pwd)"
+done
+
+if [ -z "$SCRIPT_DIR" ]; then
+    if [ -f "$(pwd)/backend/package.json" ]; then
+        SCRIPT_DIR="$(pwd)"
+    else
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    fi
+fi
+
+LINUX_DIR="$SCRIPT_DIR/linux"
 
 printf "${YELLOW}[1/6] Detecting System & Installing Package Dependencies...${NC}\n"
 
@@ -80,6 +99,12 @@ printf "${GREEN}[✔] Java Version:   ${JAVA_VER}${NC}\n"
 
 printf "${YELLOW}[2/6] Setting up Fresh AMOS Directory Structure at ${INSTALL_DIR}...${NC}\n"
 mkdir -p "$INSTALL_DIR"
+
+if [ ! -f "$SCRIPT_DIR/backend/package.json" ]; then
+    printf "${RED}[!] Error: Could not locate backend/package.json in '${SCRIPT_DIR}'.${NC}\n"
+    printf "${YELLOW}[!] Please run install.sh from inside the AMOS repository folder (e.g. cd ~/AMOS && sudo bash linux/install.sh)${NC}\n"
+    exit 1
+fi
 
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     printf "${CYAN}[+] Installing clean AMOS core files to ${INSTALL_DIR}...${NC}\n"
