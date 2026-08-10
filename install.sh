@@ -83,29 +83,22 @@ mkdir -p "$INSTALL_DIR"
 
 if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     printf "${CYAN}[+] Installing clean AMOS core files to ${INSTALL_DIR}...${NC}\n"
-    mkdir -p "$INSTALL_DIR/backend" "$INSTALL_DIR/frontend" "$INSTALL_DIR/linux" "$INSTALL_DIR/server_data"
     
     printf "    ➜ Copying backend engine...\n"
-    cp -r "$SCRIPT_DIR/backend/src" "$INSTALL_DIR/backend/" 2>/dev/null || true
-    cp "$SCRIPT_DIR/backend/package.json" "$INSTALL_DIR/backend/" 2>/dev/null || true
-    cp "$SCRIPT_DIR/backend/tsconfig.json" "$INSTALL_DIR/backend/" 2>/dev/null || true
+    rm -rf "$INSTALL_DIR/backend"
+    cp -r "$SCRIPT_DIR/backend" "$INSTALL_DIR/backend"
+    rm -rf "$INSTALL_DIR/backend/node_modules" "$INSTALL_DIR/backend/"*.sqlite* "$INSTALL_DIR/backend/"*.db 2>/dev/null || true
     
     printf "    ➜ Copying frontend application...\n"
-    cp -r "$SCRIPT_DIR/frontend/src" "$INSTALL_DIR/frontend/" 2>/dev/null || true
-    if [ -d "$SCRIPT_DIR/frontend/public" ]; then
-        cp -r "$SCRIPT_DIR/frontend/public" "$INSTALL_DIR/frontend/" 2>/dev/null || true
-    fi
-    cp "$SCRIPT_DIR/frontend/package.json" "$INSTALL_DIR/frontend/" 2>/dev/null || true
-    cp "$SCRIPT_DIR/frontend/index.html" "$INSTALL_DIR/frontend/" 2>/dev/null || true
-    cp "$SCRIPT_DIR/frontend/tsconfig.json" "$INSTALL_DIR/frontend/" 2>/dev/null || true
-    if [ -f "$SCRIPT_DIR/frontend/vite.config.ts" ]; then
-        cp "$SCRIPT_DIR/frontend/vite.config.ts" "$INSTALL_DIR/frontend/" 2>/dev/null || true
-    fi
+    rm -rf "$INSTALL_DIR/frontend"
+    cp -r "$SCRIPT_DIR/frontend" "$INSTALL_DIR/frontend"
+    rm -rf "$INSTALL_DIR/frontend/node_modules" "$INSTALL_DIR/frontend/dist" 2>/dev/null || true
     
     printf "    ➜ Copying linux control scripts...\n"
-    cp -r "$SCRIPT_DIR/linux/"* "$INSTALL_DIR/linux/" 2>/dev/null || true
+    rm -rf "$INSTALL_DIR/linux"
+    cp -r "$SCRIPT_DIR/linux" "$INSTALL_DIR/linux"
     
-    printf "${GREEN}[✔] Core files copied instantly!${NC}\n"
+    printf "${GREEN}[✔] Core files copied successfully!${NC}\n"
 fi
 
 # Ensure fresh empty server_data directory
