@@ -158,8 +158,6 @@ app.post('/api/server/command', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-import fs from 'fs';
-import path from 'path';
 const SERVER_DIR = path.join(__dirname, '../../server_data');
 
 app.get('/api/server/properties', requireAuth, (req, res) => {
@@ -185,7 +183,7 @@ app.post('/api/server/properties', requireAuth, (req, res) => {
 
 app.get('/api/server/player/details/:name', requireAuth, async (req, res) => {
     try {
-        const details = await getPlayerDetails(req.params.name);
+        const details = await getPlayerDetails(req.params.name as string);
         res.json({ success: true, details });
     } catch (e: any) {
         res.status(404).json({ success: false, message: e.message });
@@ -500,13 +498,13 @@ app.delete('/api/server/backups/:filename', requireAuth, (req, res) => {
 
 app.post('/api/server/backups/:filename/restore', requireAuth, async (req, res) => {
     try {
-        const filename = req.params.filename;
+        const filename = req.params.filename as string;
         const backupPath = path.join(SERVER_DIR, 'backups', filename);
         if (!fs.existsSync(backupPath)) {
             return res.json({ success: false, error: 'Backup file not found' });
         }
 
-        const wasOnline = getStatus() === 'online';
+        const wasOnline = (await getStatus()) === 'online';
         if (wasOnline) {
             serverEvents.emit('console', '\n[System] Stopping server for backup restoration...\n');
             stopServer();
@@ -633,6 +631,8 @@ app.post('/api/server/world/create', requireAuth, (req, res) => {
         if (!name) return res.json({ success: false, error: 'Dimension name required' });
 
         const cleanName = name.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        const envFlag = (environment || 'NORMAL').toUpperCase();
+        const targetDir = path.join(SERVER_DIR, cleanName);
 
         // Restrict manual dimension creation — dimensions can ONLY be created automatically during Special Arena Wars
         if (!isEventEngine && !cleanName.startsWith('arena_')) {

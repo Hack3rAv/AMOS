@@ -28,88 +28,116 @@ if (!fs.existsSync(SERVER_DIR)) {
 }
 
 export async function downloadPaperMC(): Promise<void> {
-    if (fs.existsSync(JAR_FILE)) return;
+    if (fs.existsSync(JAR_FILE)) {
+        try {
+            const stats = fs.statSync(JAR_FILE);
+            if (stats.size > 1000000) return; // File exists and is > 1MB
+            serverEvents.emit('console', 'Existing server.jar is incomplete/corrupted. Re-downloading...\n');
+            fs.unlinkSync(JAR_FILE);
+        } catch (e) {}
+    }
+
     if (isDownloading) return;
     isDownloading = true;
     serverEvents.emit('console', 'Downloading PaperMC ' + PAPER_VERSION + '...\n');
 
-    return new Promise((resolve, reject) => {
-        // 1. Get latest build
-        const options = {
-            hostname: 'fill.papermc.io',
-            path: `/v3/projects/paper/versions/${PAPER_VERSION}/builds`,
-            headers: {
-                'User-Agent': 'MinePanel/1.0.0 (contact@example.com)'
-            }
-        };
-
-        https.get(options, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                let parsed;
-                try {
-                    parsed = JSON.parse(data);
-                } catch (e) {
-                    isDownloading = false;
-                    serverEvents.emit('console', 'Failed to parse API response.\n');
-                    return reject(e);
+    const downloadFileFromUrl = (url: string, targetPath: string): Promise<void> => {
+        return new Promise((resolve, reject) => {
+            const req = https.get(url, {
+                headers: { 'User-Agent': 'MinePanel/1.0.0 (contact@example.com)' }
+            }, (res) => {
+                if (res.statusCode && res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                    return downloadFileFromUrl(res.headers.location, targetPath).then(resolve).catch(reject);
+                }
+                if (res.statusCode !== 200) {
+                    return reject(new Error(`HTTP status code ${res.statusCode}`));
                 }
 
-                if (!Array.isArray(parsed) || parsed.length === 0) {
-                    isDownloading = false;
-                    serverEvents.emit('console', 'Error fetching builds! API response: ' + data.substring(0, 50) + '\n');
-                    return reject(new Error('No builds found'));
-                }
-                const latestBuild = parsed[0];
-                const buildNum = latestBuild.id;
-                const downloadName = latestBuild.downloads['server:default'].name;
-                const downloadUrl = latestBuild.downloads['server:default'].url;
-                
-                serverEvents.emit('console', `Found build ${buildNum}. Downloading JAR...\n`);
-                
-                const file = fs.createWriteStream(JAR_FILE);
-                https.get(downloadUrl, {
-                    headers: { 'User-Agent': 'MinePanel/1.0.0 (contact@example.com)' }
-                }, (downloadRes) => {
-                    downloadRes.pipe(file);
-                    file.on('finish', () => {
-                        file.close();
-                        isDownloading = false;
-                        serverEvents.emit('console', 'Download complete!\n');
-                        // Auto accept EULA
-                        fs.writeFileSync(path.join(SERVER_DIR, 'eula.txt'), 'eula=true');
-                        resolve();
-                    });
-                }).on('error', (err) => {
-                    isDownloading = false;
-                    fs.unlinkSync(JAR_FILE);
-                    serverEvents.emit('console', `Download error: ${err.message}\n`);
+                const file = fs.createWriteStream(targetPath);
+                res.pipe(file);
+                file.on('finish', () => {
+                    file.close();
+                    resolve();
+                });
+                file.on('error', (err) => {
+                    fs.unlink(targetPath, () => {});
                     reject(err);
                 });
             });
-        }).on('error', (err) => {
-            isDownloading = false;
-            serverEvents.emit('console', `API error: ${err.message}\n`);
-            reject(err);
+            req.on('error', (err) => {
+                fs.unlink(targetPath, () => {});
+                reject(err);
+            });
         });
-    });
+    };
+
+    try {
+        const buildsUrl = `https://fill.papermc.io/v3/projects/paper/versions/${PAPER_VERSION}/builds`;
+        const apiData: string = await new Promise((resolve, reject) => {
+            https.get(buildsUrl, {
+                headers: { 'User-Agent': 'MinePanel/1.0.0 (contact@example.com)' }
+            }, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve(data));
+            }).on('error', reject);
+        });
+
+        let parsed: any;
+        try {
+            parsed = JSON.parse(apiData);
+        } catch (e) {
+            throw new Error('Failed to parse PaperMC API response.');
+        }
+
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            throw new Error('No PaperMC builds found.');
+        }
+
+        const latestBuild = parsed[0];
+        const buildNum = latestBuild.id;
+        const downloadUrl = latestBuild.downloads['server:default']?.url;
+
+        if (!downloadUrl) {
+            throw new Error('PaperMC download URL not found in API response.');
+        }
+
+        serverEvents.emit('console', `Found PaperMC build #${buildNum}. Downloading JAR...\n`);
+        await downloadFileFromUrl(downloadUrl, JAR_FILE);
+
+        serverEvents.emit('console', 'Download complete!\n');
+        fs.writeFileSync(path.join(SERVER_DIR, 'eula.txt'), 'eula=true');
+    } catch (err: any) {
+        serverEvents.emit('console', `Download error: ${err.message}\n`);
+        if (fs.existsSync(JAR_FILE)) {
+            try { fs.unlinkSync(JAR_FILE); } catch (e) {}
+        }
+        throw err;
+    } finally {
+        isDownloading = false;
+    }
 }
 
 import { execSync } from 'child_process';
 
 function freePort25565() {
     try {
-        const out = execSync('netstat -ano | findstr :25565', { encoding: 'utf-8' });
-        const lines = out.split('\n');
-        for (const line of lines) {
-            if (line.includes('LISTENING')) {
-                const parts = line.trim().split(/\s+/);
-                const pid = parts[parts.length - 1];
-                if (pid && pid !== '0') {
-                    execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
+        if (process.platform === 'win32') {
+            const out = execSync('netstat -ano | findstr :25565', { encoding: 'utf-8' });
+            const lines = out.split('\n');
+            for (const line of lines) {
+                if (line.includes('LISTENING')) {
+                    const parts = line.trim().split(/\s+/);
+                    const pid = parts[parts.length - 1];
+                    if (pid && pid !== '0') {
+                        execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
+                    }
                 }
             }
+        } else {
+            try {
+                execSync('fuser -k 25565/tcp', { stdio: 'ignore' });
+            } catch (e) {}
         }
     } catch (e) {}
 }
@@ -125,14 +153,17 @@ export async function startServer(ramMB?: string): Promise<void> {
     // Ensure port 25565 is not occupied by an orphaned java process
     if (serverProcess && serverProcess.pid) {
         try {
-            execSync(`taskkill /F /PID ${serverProcess.pid} /T`, { stdio: 'ignore' });
+            if (process.platform === 'win32') {
+                execSync(`taskkill /F /PID ${serverProcess.pid} /T`, { stdio: 'ignore' });
+            } else {
+                process.kill(serverProcess.pid, 'SIGKILL');
+            }
         } catch(e) {}
         serverProcess = null;
     }
     freePort25565();
 
-
-    if (!fs.existsSync(JAR_FILE)) {
+    if (!fs.existsSync(JAR_FILE) || fs.statSync(JAR_FILE).size < 1000000) {
         await downloadPaperMC();
     }
 
@@ -299,7 +330,11 @@ export function killServer() {
     // Only kill the server process by PID — NOT all java.exe (that kills TLauncher too!)
     if (serverProcess && serverProcess.pid) {
         try {
-            execSync(`taskkill /F /PID ${serverProcess.pid} /T`, { stdio: 'ignore' });
+            if (process.platform === 'win32') {
+                execSync(`taskkill /F /PID ${serverProcess.pid} /T`, { stdio: 'ignore' });
+            } else {
+                process.kill(serverProcess.pid, 'SIGKILL');
+            }
         } catch(e) {}
     }
     freePort25565();
