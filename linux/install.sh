@@ -122,8 +122,11 @@ if [ "$SCRIPT_DIR" != "$INSTALL_DIR" ]; then
     # Extract frontend assets if assets.zip exists in the copied directory
     if [ -f "$INSTALL_DIR/frontend/public/assets/assets.zip" ]; then
         printf "    -> Extracting frontend assets.zip...\n"
-        unzip -q "$INSTALL_DIR/frontend/public/assets/assets.zip" -d "$INSTALL_DIR/frontend/public/assets/"
+        unzip -q -o "$INSTALL_DIR/frontend/public/assets/assets.zip" -d "$INSTALL_DIR/frontend/public/assets/"
         rm -f "$INSTALL_DIR/frontend/public/assets/assets.zip"
+    fi
+    if [ -f "$INSTALL_DIR/frontend/public/assets/master.zip" ]; then
+        rm -f "$INSTALL_DIR/frontend/public/assets/master.zip"
     fi
     
     printf "    -> Copying linux control scripts...\n"
