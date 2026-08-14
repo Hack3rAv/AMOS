@@ -146,10 +146,11 @@ rm -f "$INSTALL_DIR/backend/database.db"*
 cd "$INSTALL_DIR"
 
 printf "${YELLOW}[3/6] Installing Backend & Frontend NPM Packages...${NC}\n"
-printf "${CYAN}[+] Installing Backend Dependencies...${NC}\n"
+printf "${CYAN}[+] Installing Backend Dependencies & Compiling Native SQLite3 Module...${NC}\n"
 cd "$INSTALL_DIR/backend"
 npm install --production=false
-printf "${GREEN}[OK] Backend dependencies installed successfully!${NC}\n"
+npm rebuild sqlite3 --build-from-source || npm install sqlite3 --build-from-source
+printf "${GREEN}[OK] Backend dependencies & native sqlite3 module compiled successfully!${NC}\n"
 
 printf "${CYAN}[+] Installing Frontend Dependencies...${NC}\n"
 cd "$INSTALL_DIR/frontend"

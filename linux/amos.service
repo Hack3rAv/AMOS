@@ -7,7 +7,7 @@ After=network.target remote-fs.target nss-lookup.target
 Type=simple
 User=root
 WorkingDirectory=/opt/amos/backend
-ExecStart=/usr/bin/env npx tsx src/index.ts
+ExecStart=/usr/bin/env npm start
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
