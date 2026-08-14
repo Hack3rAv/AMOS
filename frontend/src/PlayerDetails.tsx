@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Heart, Drumstick, Skull, Clock, Footprints, MapPin, XCircle, ShieldCheck, Users, Box, RefreshCw, Check, X, ArrowLeft, Gamepad2, ChevronDown, ChevronUp, UserX } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
 
 function GamemodeDropdown({ playerName, isOnline, token }: any) {
   const [isOpen, setIsOpen] = useState(false);

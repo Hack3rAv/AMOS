@@ -12,8 +12,12 @@ import { WorldsTab } from './WorldsTab';
 import { EventsTab } from './EventsTab';
 import logoImg from './assets/logo.png';
 
-const API_BASE = 'http://localhost:3001/api';
-const WS_BASE = 'ws://localhost:3001/api/ws';
+const host = window.location.host; 
+const protocol = window.location.protocol;
+const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+
+const API_BASE = `${protocol}//${host}/api`;
+const WS_BASE = `${wsProtocol}//${host}/api/ws`;
 
 type Tab = 'server' | 'console' | 'options' | 'players' | 'worlds' | 'events' | 'plugins' | 'backups' | 'log' | 'map' | 'weather';
 

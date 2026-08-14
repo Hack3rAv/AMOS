@@ -4,7 +4,7 @@ import {
   Globe, Megaphone, Trash2, History, Link, ShieldCheck
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
 
 interface ActiveEvent {
   id: string;

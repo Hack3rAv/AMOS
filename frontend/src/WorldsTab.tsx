@@ -4,7 +4,7 @@ import {
   CornerUpLeft, Check, X, Swords, Flame, Eye, FileArchive, Sparkles
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
 
 interface WorldItem {
   name: string;

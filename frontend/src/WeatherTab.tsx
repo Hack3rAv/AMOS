@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sun, Moon, CloudRain, CloudLightning, Lock, Unlock, Zap, Clock, Pause, Snowflake } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3001/api';
+const API_BASE = `${window.location.protocol}//${window.location.host}/api`;
 
 // Perfect Organic Fluffy SVG Cloud Component
 function PerfectCloudSVG({ storm = false, className = '' }: { storm?: boolean, className?: string }) {
