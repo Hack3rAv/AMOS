@@ -12,6 +12,7 @@ Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
 Environment=PORT=3001
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=amos

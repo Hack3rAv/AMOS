@@ -73,7 +73,7 @@ cmd_status() {
 cmd_start() {
     echo -e "${GREEN}[+] Starting AMOS Service...${NC}"
     sudo systemctl start "$SERVICE_NAME"
-    sleep 1
+    sleep 2
     cmd_status
 }
 
@@ -86,7 +86,7 @@ cmd_stop() {
 cmd_restart() {
     echo -e "${YELLOW}[~] Restarting AMOS Service...${NC}"
     sudo systemctl restart "$SERVICE_NAME"
-    sleep 1
+    sleep 2
     cmd_status
 }
 

@@ -149,12 +149,16 @@ printf "${YELLOW}[3/6] Installing Backend & Frontend NPM Packages...${NC}\n"
 printf "${CYAN}[+] Installing Backend Dependencies...${NC}\n"
 cd "$INSTALL_DIR/backend"
 npm install --production=false
+printf "${GREEN}[OK] Backend dependencies installed successfully!${NC}\n"
 
-printf "${CYAN}[+] Installing Frontend Dependencies & Compiling Production Bundle...${NC}\n"
+printf "${CYAN}[+] Installing Frontend Dependencies...${NC}\n"
 cd "$INSTALL_DIR/frontend"
 npm install
-# Added memory parameter to prevent Vite from hanging on limited RAM environments
+printf "${GREEN}[OK] Frontend dependencies installed successfully!${NC}\n"
+
+printf "${CYAN}[+] Compiling Production Web App Bundle with Vite (building assets & chunks, please wait...)${NC}\n"
 NODE_OPTIONS="--max-old-space-size=4096" npm run build
+printf "${GREEN}[OK] Web App production bundle compiled successfully!${NC}\n"
 
 printf "${YELLOW}[4/6] Installing Systemd Background Daemon (amos.service)...${NC}\n"
 cp "$LINUX_DIR/amos.service" /etc/systemd/system/amos.service
