@@ -120,20 +120,32 @@ cmd_logs() {
     sudo journalctl -u "$SERVICE_NAME" -f -n 100
 }
 
+cmd_uninstall() {
+    if [ -f "$INSTALL_DIR/linux/uninstall.sh" ]; then
+        sudo bash "$INSTALL_DIR/linux/uninstall.sh"
+    elif [ -f "$(dirname "${BASH_SOURCE[0]}")/uninstall.sh" ]; then
+        sudo bash "$(dirname "${BASH_SOURCE[0]}")/uninstall.sh"
+    else
+        echo -e "${RED}[!] Error: Could not locate uninstall.sh${NC}"
+        exit 1
+    fi
+}
+
 cmd_help() {
     show_banner
     echo "Usage: amos [command]"
     echo ""
     echo "Commands:"
-    echo "  status    - Show AMOS daemon status, server state & portal IPs"
-    echo "  ip        - Display web panel portal access URLs & IP addresses"
-    echo "  start     - Start the AMOS background daemon service"
-    echo "  stop      - Stop the AMOS background daemon service"
-    echo "  restart   - Restart the AMOS background daemon service"
-    echo "  enable    - Enable AMOS daemon auto-start on system boot"
-    echo "  disable   - Disable AMOS daemon auto-start on system boot"
-    echo "  logs      - Tail live system logs from the AMOS daemon"
-    echo "  help      - Show this help menu"
+    echo "  status     - Show AMOS daemon status, server state & portal IPs"
+    echo "  ip         - Display web panel portal access URLs & IP addresses"
+    echo "  start      - Start the AMOS background daemon service"
+    echo "  stop       - Stop the AMOS background daemon service"
+    echo "  restart    - Restart the AMOS background daemon service"
+    echo "  enable     - Enable AMOS daemon auto-start on system boot"
+    echo "  disable    - Disable AMOS daemon auto-start on system boot"
+    echo "  logs       - Tail live system logs from the AMOS daemon"
+    echo "  uninstall  - Cleanly uninstall AMOS with option to save worlds"
+    echo "  help       - Show this help menu"
     echo ""
 }
 
@@ -161,6 +173,9 @@ case "$1" in
         ;;
     logs|log)
         cmd_logs
+        ;;
+    uninstall)
+        cmd_uninstall
         ;;
     help|--help|-h|"")
         cmd_help
